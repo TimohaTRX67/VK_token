@@ -162,13 +162,27 @@
     <div class="logo">🔑</div>
     <h1>Получить токен VK</h1>
     <p class="subtitle">Нажми кнопку и войди в аккаунт VK.<br>Токен появится в адресной строке.</p>
+
+    <div style="text-align:left;margin-bottom:16px">
+      <div class="field-label">Способ входа</div>
+      <select class="token-input" id="app-select" style="font-family:inherit;font-size:14px;padding:12px 14px;margin-bottom:0">
+        <option value="6287487">vk.com</option>
+        <option value="2685278">Kate Mobile</option>
+        <option value="6121396">VK Admin</option>
+        <option value="6463690">Маруся</option>
+        <option value="4083558">VFeed</option>
+        <option value="5530956">Prisma</option>
+        <option value="3698024">Instagram (VK)</option>
+      </select>
+    </div>
+
     <button class="btn btn-primary" onclick="authorize()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12.785 2C6.92 2 2 6.477 2 12 2 17.523 6.92 22 12.785 22c5.864 0 10.215-4.477 10.215-10S18.649 2 12.785 2zm5.98 11.418h-3.393c0 2.685 2.842 2.393 2.842 2.393v1.737s-3.94.524-4.827-2.755c-.23 1.18-.944 2.755-3.213 2.755H8.5v-1.737s2.478.292 2.478-2.393H7.235v-1.764H11c0-1.64-1.477-1.487-2.043-1.487v-1.73h1.35c1.73 0 2.172 1.143 2.172 1.143V8h1.655v1.58s.44-1.143 2.173-1.143h1.35v1.73c-.566 0-2.044-.154-2.044 1.487h3.953v1.764z"/>
       </svg>
-      Войти через VK (Kate Mobile)
+      Войти через VK
     </button>
-    <p class="hint">Вход напрямую через VK. Токен нигде не сохраняется.</p>
+    <p class="hint">Если появляется «Сервис заблокирован» — выбери другой способ входа в списке выше и попробуй снова. Токен нигде не сохраняется.</p>
   </div>
 
   <!-- Шаг 2: инструкция -->
@@ -195,7 +209,7 @@
     <textarea class="token-input" id="token-input" rows="3" placeholder="vk1.a.AbCdEf..."></textarea>
     <div class="err-msg" id="token-error">Это не похоже на токен. Скопируй значение access_token из адресной строки.</div>
 
-    <button class="btn btn-primary" onclick="confirm()">Готово</button>
+    <button class="btn btn-primary" onclick="submitToken()">Готово</button>
     <button class="btn btn-secondary" onclick="authorize()">Открыть VK снова</button>
   </div>
 
@@ -217,15 +231,20 @@
 </div>
 
 <script>
-  // Точно такой же URL как у vkhost.github.io (Kate Mobile)
-  const VK_AUTH = 'https://oauth.vk.com/authorize?client_id=2685278&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1';
+  // Список client_id — как у vkhost.github.io. VK периодически блокирует
+  // отдельные приложения (Kate Mobile, VK Admin и т.д.), поэтому даём выбор:
+  // если один вариант выдаёт "Сервис заблокирован", пробуем следующий.
+  function vkAuthUrl(clientId) {
+    return `https://oauth.vk.com/authorize?client_id=${clientId}&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1`;
+  }
 
   function authorize() {
-    window.open(VK_AUTH);
+    const clientId = document.getElementById('app-select').value;
+    window.open(vkAuthUrl(clientId));
     show('auth-screen');
   }
 
-  function confirm() {
+  function submitToken() {
     const val = document.getElementById('token-input').value.trim();
     const errEl = document.getElementById('token-error');
     const inputEl = document.getElementById('token-input');

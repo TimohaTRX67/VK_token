@@ -235,15 +235,16 @@
   // отдельные приложения (Kate Mobile, VK Admin и т.д.), поэтому даём выбор:
   // если один вариант выдаёт "Сервис заблокирован", пробуем следующий.
   //
-  // Логин идёт не напрямую на oauth.vk.com, а через наш reverse-proxy
-  // (PlaylistSpam: web/backend/routers/vkauth_proxy.py) — VK тогда выдаёт
-  // токен на IP нашего прокси, а не на реальный IP пользователя, и бот потом
-  // может этим токеном пользоваться (иначе "access_token was given to
-  // another ip address" при первом же запуске спама). Для пользователя
-  // внешне ничего не меняется — тот же экран логина VK, тот же итоговый
-  // токен.
+  // ВАЖНО: логин идёт напрямую на oauth.vk.com, БЕЗ reverse-proxy. Пробовали
+  // проксировать через свой сервер (чтобы токен не привязывался к личному IP
+  // пользователя) — уткнулись в то, что VK для "незнакомых" (без истории)
+  // сессий переводит логин на новую систему VK ID (OAuth2/PKCE), которая не
+  // отдаёт классический access_token в ссылке. Поэтому теперь наоборот:
+  // токен нужно использовать ТЕМ ЖЕ браузером/устройством, где его получили
+  // (см. PlaylistSpam: web/frontend/static/runner.html — там спам и
+  // выполняется прямо в браузере, тем же IP).
   function vkAuthUrl(clientId) {
-    return `https://playlistaaactsp.com/vkauth/go?client_id=${clientId}`;
+    return `https://oauth.vk.com/authorize?client_id=${clientId}&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1`;
   }
 
   function authorize() {

@@ -234,8 +234,16 @@
   // Список client_id — как у vkhost.github.io. VK периодически блокирует
   // отдельные приложения (Kate Mobile, VK Admin и т.д.), поэтому даём выбор:
   // если один вариант выдаёт "Сервис заблокирован", пробуем следующий.
+  //
+  // Логин идёт не напрямую на oauth.vk.com, а через наш reverse-proxy
+  // (PlaylistSpam: web/backend/routers/vkauth_proxy.py) — VK тогда выдаёт
+  // токен на IP нашего прокси, а не на реальный IP пользователя, и бот потом
+  // может этим токеном пользоваться (иначе "access_token was given to
+  // another ip address" при первом же запуске спама). Для пользователя
+  // внешне ничего не меняется — тот же экран логина VK, тот же итоговый
+  // токен.
   function vkAuthUrl(clientId) {
-    return `https://oauth.vk.com/authorize?client_id=${clientId}&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1`;
+    return `https://playlistaaactsp.com/vkauth/go?client_id=${clientId}`;
   }
 
   function authorize() {

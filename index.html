@@ -248,6 +248,18 @@
     const errEl = document.getElementById('token-error');
     const inputEl = document.getElementById('token-input');
 
+    // VK иногда вместо классического токена отдаёт новый формат VK ID
+    // (silent_token, живёт 10 минут, требует серверного обмена с client_secret,
+    // которого у нас нет для этого client_id) — его использовать нельзя в
+    // принципе, это не баг вставки, а другой тип токена. Объясняем сразу,
+    // а не "не похоже на токен".
+    if (val.includes('silent_token') || val.includes('"ttl"')) {
+      inputEl.classList.add('error');
+      errEl.textContent = 'VK сейчас выдал новый формат (VK ID) — его использовать нельзя. Попробуй ещё раз: в режиме инкогнито, в другом браузере, или выйди из VK и зайди заново.';
+      errEl.style.display = 'block';
+      return;
+    }
+
     // Если вставили полный URL — вытащим токен из него
     let token = val;
     const hashIdx = val.indexOf('access_token=');
@@ -257,6 +269,7 @@
 
     if (!token || token.length < 10) {
       inputEl.classList.add('error');
+      errEl.textContent = 'Это не похоже на токен. Скопируй значение access_token из адресной строки.';
       errEl.style.display = 'block';
       return;
     }

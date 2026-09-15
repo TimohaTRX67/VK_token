@@ -196,8 +196,8 @@
         <li>Войди в аккаунт в открытой вкладке</li>
         <li>Нажми <strong>«Разрешить»</strong></li>
         <li>Ты попадёшь на <strong>пустую страницу</strong></li>
-        <li>Скопируй значение <strong>access_token</strong> из адресной строки</li>
-        <li>Вставь его ниже</li>
+        <li>Скопируй <strong>всю ссылку целиком</strong> из адресной строки (не нужно вырезать именно токен)</li>
+        <li>Вернись сюда и вставь</li>
       </ol>
     </div>
 
@@ -205,8 +205,9 @@
       oauth.vk.com/blank.html#<span class="hl">access_token=vk1.a.ВОТ_ЭТО_КОПИРОВАТЬ</span>&expires_in=0&...
     </div>
 
-    <div class="field-label">Токен (вставь сюда)</div>
-    <textarea class="token-input" id="token-input" rows="3" placeholder="vk1.a.AbCdEf..."></textarea>
+    <div class="field-label">Токен или вся ссылка (вставь сюда)</div>
+    <textarea class="token-input" id="token-input" rows="3" placeholder="vk1.a.AbCdEf... или вся ссылка"></textarea>
+    <button class="btn btn-secondary" id="paste-btn" type="button" onclick="pasteFromClipboard()" style="margin-bottom:10px">📋 Вставить из буфера</button>
     <div class="err-msg" id="token-error">Это не похоже на токен. Скопируй значение access_token из адресной строки.</div>
 
     <button class="btn btn-primary" onclick="submitToken()">Готово</button>
@@ -248,10 +249,32 @@
     return `https://oauth.vk.com/authorize?client_id=${clientId}&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=popup&response_type=token&revoke=1&v=5.199`;
   }
 
+  // Запоминаем, какой способ входа сработал в прошлый раз, и сразу его
+  // предлагаем — не нужно каждый раз заново перебирать варианты.
+  (function restoreLastWorkingApp() {
+    const saved = localStorage.getItem('vk_working_client_id');
+    if (saved) {
+      const select = document.getElementById('app-select');
+      if ([...select.options].some(o => o.value === saved)) select.value = saved;
+    }
+  })();
+
   function authorize() {
     const clientId = document.getElementById('app-select').value;
     window.open(vkAuthUrl(clientId));
     show('auth-screen');
+  }
+
+  async function pasteFromClipboard() {
+    const btn = document.getElementById('paste-btn');
+    try {
+      const text = await navigator.clipboard.readText();
+      document.getElementById('token-input').value = text.trim();
+      btn.textContent = '✓ Вставлено';
+      setTimeout(() => { btn.textContent = '📋 Вставить из буфера'; }, 1500);
+    } catch (e) {
+      alert('Не удалось прочитать буфер обмена — вставь вручную (долгое нажатие в поле → Вставить).');
+    }
   }
 
   function submitToken() {
@@ -288,6 +311,8 @@
     inputEl.classList.remove('error');
     errEl.style.display = 'none';
     document.getElementById('token-field').value = token;
+    const usedClientId = document.getElementById('app-select').value;
+    localStorage.setItem('vk_working_client_id', usedClientId);
     show('token-screen');
   }
 

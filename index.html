@@ -246,7 +246,13 @@
   // (см. PlaylistSpam: web/frontend/static/runner.html — там спам и
   // выполняется прямо в браузере, тем же IP).
   function vkAuthUrl(clientId) {
-    return `https://oauth.vk.com/authorize?client_id=${clientId}&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=popup&response_type=token&revoke=1&v=5.199`;
+    // scope — ТОЛЬКО необходимый минимум: offline (бессрочный токен),
+    // wall (оставлять комментарии), groups (читать сообщества). Раньше тут был
+    // 1073737727 = ВСЕ права разом (сообщения, почта, реклама, маркет, фото…),
+    // и VK лочил аккаунт сразу после выдачи токена с экраном «страница
+    // взломана / проверьте компьютер антивирусом» — полный доступ навсегда для
+    // антифрода выглядит как захват аккаунта. Минимальный scope этот триггер убирает.
+    return `https://oauth.vk.com/authorize?client_id=${clientId}&scope=offline,wall,groups&redirect_uri=https://oauth.vk.com/blank.html&display=popup&response_type=token&revoke=1&v=5.199`;
   }
 
   // Запоминаем, какой способ входа сработал в прошлый раз, и сразу его
